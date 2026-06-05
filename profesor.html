@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduBac — Panou Profesor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --cream: #f5f0e8;
+    --gold: #c8a84b;
+    --burgundy: #7a1f2e;
+    --border: #d8d0c0;
+    --white: #ffffff;
+    --success: #27ae60;
+    --muted: #6b6b6b;
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); display: flex; min-height: 100vh; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--ink); color: var(--white); padding: 30px 20px; display: flex; flex-direction: column; position: fixed; height: 100vh; }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: var(--gold); text-align: center; margin-bottom: 40px; }
+  .nav-menu { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+  .nav-item { padding: 12px 15px; color: var(--border); text-decoration: none; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: 0.3s; }
+  .nav-item:hover, .nav-item.active { background: var(--burgundy); color: var(--white); }
+  .btn-logout { margin-top: auto; background: none; border: 1px solid var(--border); color: var(--white); padding: 10px; cursor: pointer; font-family: inherit; transition: 0.3s; }
+  .btn-logout:hover { background: var(--burgundy); }
+
+  .main-content { margin-left: var(--sidebar-w); width: calc(100% - var(--sidebar-w)); padding: 40px; }
+  .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 30px; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+
+  .section-panel { background: var(--white); border: 1px solid var(--border); padding: 30px; margin-bottom: 30px; }
+  .section-panel h2 { font-family: 'Playfair Display', serif; margin-bottom: 20px; border-bottom: 2px solid var(--cream); padding-bottom: 10px; }
+
+  .table-item { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+  .table-item th, .table-item td { border: 1px solid var(--border); padding: 12px; text-align: left; }
+  .table-item th { background: var(--cream); font-weight: 600; }
+
+  .form-group { margin-bottom: 15px; }
+  .form-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; }
+  .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); font-family: inherit; background: var(--cream); }
+  
+  .btn { padding: 8px 16px; border: none; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-transform: uppercase; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-primary { background: var(--ink); color: white; }
+  .btn-primary:hover { background: var(--burgundy); }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">EduBac (Prof)</div>
+  <div class="nav-menu">
+    <div class="nav-item active">Panou de Control</div>
+  </div>
+  <button class="btn-logout" onclick="logout()">Deconectare</button>
+</div>
+
+<div class="main-content">
+  <div class="header">
+    <div class="page-title">Management Platformă</div>
+    <div style="font-weight:600; text-transform:uppercase;">Mod Profesor</div>
+  </div>
+
+  <div class="section-panel">
+    <h2>Validare și Cereri Conectare Elevi</h2>
+    <table class="table-item" id="studentsTable">
+      <thead>
+        <tr>
+          <th>Nume</th>
+          <th>Email</th>
+          <th>Profil</th>
+          <th>Status Actual</th>
+          <th>Acțiuni</th>
+        </tr>
+      </thead>
+      <tbody>
+        </tbody>
+    </table>
+  </div>
+
+  <div class="section-panel">
+    <h2>Configurare Ore și Resurse Video</h2>
+    <div id="lessonsEditorContainer">
+      </div>
+  </div>
+
+  <div class="section-panel">
+    <h2>Creare și Editare Chestionare (Quiz)</h2>
+    <div class="form-group">
+      <label class="form-label">Selectează Lecția</label>
+      <select id="quizLessonSelect" class="form-control"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Întrebare</label>
+      <input type="text" id="quizQuestion" class="form-control" placeholder="Ex: Care a fost anul semnării tratatului?">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Varianta 1</label>
+      <input type="text" id="quizOpt0" class="form-control">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Varianta 2</label>
+      <input type="text" id="quizOpt1" class="form-control">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Varianta corectă (Index)</label>
+      <select id="quizCorrect" class="form-control">
+        <option value="0">Varianta 1</option>
+        <option value="1">Varianta 2</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="addQuizQuestion()">Adaugă Întrebarea în Test</button>
+  </div>
+</div>
+
+<script>
+  // Protecție acces
+  let currentUser = JSON.parse(localStorage.getItem('edubac_current_user'));
+  if (!currentUser || currentUser.role !== 'teacher') {
+    window.location.href = 'index.html';
+  }
+
+  function loadDashboard() {
+    renderStudents();
+    renderLessonsEditor();
+    populateLessonSelect();
+  }
+
+  // 1. Management Elevi
+  function renderStudents() {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const students = users.filter(u => u.role === 'student');
+    let html = '';
+
+    if (students.length === 0) {
+      html = '<tr><td colspan="5" style="text-align:center;">Niciun elev înregistrat.</td></tr>';
+    } else {
+      students.forEach(st => {
+        html += `
+          <tr>
+            <td>${st.name}</td>
+            <td>${st.email}</td>
+            <td>${st.course}</td>
+            <td style="font-weight:600; color: ${st.status === 'active' ? 'var(--success)' : 'var(--burgundy)'}">${st.status.toUpperCase()}</td>
+            <td>
+              ${st.status === 'pending' ? `<button class="btn btn-success" onclick="approveStudent(${st.id})">Permite Acces</button>` : '<span style="color:var(--muted)">Aprobat</span>'}
+            </td>
+          </tr>
+        `;
+      });
+    }
+    document.querySelector('#studentsTable tbody').innerHTML = html;
+  }
+
+  function approveStudent(id) {
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+    let user = users.find(u => u.id === id);
+    if (user) {
+      user.status = 'active';
+      localStorage.setItem('users', JSON.stringify(users));
+      loadDashboard();
+    }
+  }
+
+  // 2. Management Conținut Lecții
+  function renderLessonsEditor() {
+    const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    let html = '';
+
+    lessons.forEach(l => {
+      html += `
+        <div style="border:1px solid var(--border); padding:15px; margin-bottom:15px; background:var(--cream);">
+          <div class="form-group">
+            <label class="form-label">Denumire Oră (ID ${l.id})</label>
+            <input type="text" id="title_${l.id}" class="form-control" value="${l.title}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link Link Video (YouTube standard sau Embed)</label>
+            <input type="text" id="video_${l.id}" class="form-control" value="${l.videoUrl || ''}" placeholder="https://www.youtube.com/watch?v=...">
+          </div>
+          <button class="btn btn-primary" onclick="saveLesson(${l.id})">Salvează Modificările orei</button>
+        </div>
+      `;
+    });
+    document.getElementById('lessonsEditorContainer').innerHTML = html;
+  }
+
+  function saveLesson(id) {
+    let lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    let lesson = lessons.find(l => l.id === id);
+    if (lesson) {
+      lesson.title = document.getElementById(`title_${id}`).value;
+      lesson.videoUrl = document.getElementById(`video_${id}`).value;
+      localStorage.setItem('lessons', JSON.stringify(lessons));
+      alert('Modificările orei au fost salvate cu succes!');
+      loadDashboard();
+    }
+  }
+
+  // 3. Management Chestionare
+  function populateLessonSelect() {
+    const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    let html = lessons.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
+    document.getElementById('quizLessonSelect').innerHTML = html;
+  }
+
+  function addQuizQuestion() {
+    const lessonId = parseInt(document.getElementById('quizLessonSelect').value);
+    const questionText = document.getElementById('quizQuestion').value.trim();
+    const opt0 = document.getElementById('quizOpt0').value.trim();
+    const opt1 = document.getElementById('quizOpt1').value.trim();
+    const correct = document.getElementById('quizCorrect').value;
+
+    if (!questionText || !opt0 || !opt1) {
+      alert('Te rog completă textul întrebării și ambele variante.');
+      return;
+    }
+
+    let lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    let lesson = lessons.find(l => l.id === lessonId);
+
+    if (lesson) {
+      if (!lesson.quiz) lesson.quiz = [];
+      
+      lesson.quiz.push({
+        question: questionText,
+        options: [opt0, opt1],
+        correct: parseInt(correct)
+      });
+
+      localStorage.setItem('lessons', JSON.stringify(lessons));
+      alert('Întrebarea a fost adăugată cu succes în testul acestei lecții!');
+      
+      // Resetare câmpuri formular
+      document.getElementById('quizQuestion').value = '';
+      document.getElementById('quizOpt0').value = '';
+      document.getElementById('quizOpt1').value = '';
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('edubac_current_user');
+    window.location.href = 'index.html';
+  }
+
+  // Încărcare inițială date panou
+  loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduBac — Platformă de Pregătire pentru Bacalaureat</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --cream: #f5f0e8;
+    --gold: #c8a84b;
+    --gold-light: #e8d49a;
+    --burgundy: #7a1f2e;
+    --slate: #2c3e50;
+    --muted: #6b6b6b;
+    --border: #d8d0c0;
+    --white: #ffffff;
+    --error: #c0392b;
+    --success: #27ae60;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .auth-container {
+    background: var(--white);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 450px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+
+  .brand-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .brand-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--burgundy);
+  }
+
+  .brand-subtitle {
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 5px;
+  }
+
+  .form-group { margin-bottom: 20px; }
+  
+  .form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    background: var(--cream);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: var(--white);
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    background: var(--ink);
+    color: var(--white);
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.3s;
+    margin-top: 10px;
+  }
+
+  .btn-submit:hover { background: var(--burgundy); }
+
+  .switch-mode {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .switch-link {
+    color: var(--burgundy);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .switch-link:hover { text-decoration: underline; }
+
+  .error-message {
+    background: #fdf2f2;
+    color: var(--error);
+    border: 1px solid #f8b4b4;
+    padding: 12px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--ink);
+    color: var(--white);
+    padding: 15px 25px;
+    font-size: 0.9rem;
+    border-left: 4px solid var(--gold);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.4s ease;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left-color: var(--success); }
+</style>
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="brand-header">
+    <div class="brand-title">EduBac</div>
+    <div class="brand-subtitle">Istorie & Cultură</div>
+  </div>
+
+  <div id="loginFormSection">
+    <div id="loginError" class="error-message"></div>
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="loginEmail" class="form-input" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Parolă</label>
+        <input type="password" id="loginPass" class="form-input" required>
+      </div>
+      <button type="submit" class="btn-submit">CONECTARE</button>
+    </form>
+    <div class="switch-mode">
+      Nu ai un cont? <a href="#" class="switch-link" onclick="toggleForm(false)">Înregistrează-te</a>
+    </div>
+  </div>
+
+  <div id="registerFormSection" style="display: none;">
+    <div id="registerError" class="error-message"></div>
+    <form id="registerForm" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label class="form-label">Nume Complet</label>
+        <input type="text" id="regName" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="regEmail" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Rolul Tău</label>
+        <select id="regRole" class="form-select">
+          <option value="student">Elev</option>
+          <option value="teacher">Profesor</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Profil Curs</label>
+        <select id="regCourse" class="form-select">
+          <option value="Umanist">Umanist (Bacalaureat Istorie)</option>
+          <option value="Real">Real (Cultură Generală)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Parolă</label>
+        <input type="password" id="regPass" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmă Parola</label>
+        <input type="password" id="regPass2" class="form-input">
+      </div>
+      <button type="submit" class="btn-submit">CREARE CONT</button>
+    </form>
+    <div class="switch-mode">
+      Ai deja cont? <a href="#" class="switch-link" onclick="toggleForm(true)">Conectează-te</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // Inițializare structură de bază date locală
+  const getUsers = () => JSON.parse(localStorage.getItem('users')) || [];
+  const saveUsers = (u) => localStorage.setItem('users', JSON.stringify(u));
+  const setCurrentUser = (u) => localStorage.setItem('edubac_current_user', JSON.stringify(u));
+
+  // Inițializare lecții implicite dacă nu există
+  if (!localStorage.getItem('lessons')) {
+    const defaultLessons = [
+      { id: 1, title: "Sistemul Versailles-Washington", videoUrl: "", quiz: [] },
+      { id: 2, title: "Războiul Rece", videoUrl: "", quiz: [] },
+      { id: 3, title: "Regimul Totalitar în România sub Ceaușescu", videoUrl: "", quiz: [] }
+    ];
+    localStorage.setItem('lessons', JSON.stringify(defaultLessons));
+  }
+
+  function toggleForm(showLogin) {
+    document.getElementById('loginFormSection').style.display = showLogin ? 'block' : 'none';
+    document.getElementById('registerFormSection').style.display = showLogin ? 'none' : 'block';
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+
+    const users = getUsers();
+    const user = users.find(u => u.email === email && u.password === pass);
+
+    if (!user) {
+      errEl.textContent = 'Email sau parolă incorectă!';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    setCurrentUser(user);
+    showToast('Autentificare reușită!', 'success');
+
+    setTimeout(() => {
+      if (user.role === 'teacher') {
+        window.location.href = 'profesor.html';
+      } else {
+        window.location.href = 'student.html';
+      }
+    }, 1000);
+  }
+
+  function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const role = document.getElementById('regRole').value;
+    const course = document.getElementById('regCourse').value;
+    const pass = document.getElementById('regPass').value;
+    const pass2 = document.getElementById('regPass2').value;
+    const errEl = document.getElementById('registerError');
+    errEl.style.display = 'none';
+
+    if (!name || !email || !pass || !pass2) {
+      errEl.textContent = 'Completați toate câmpurile!';
+      errEl.style.display = 'block'; return;
+    }
+    if (pass !== pass2) {
+      errEl.textContent = 'Parolele nu coincid!';
+      errEl.style.display = 'block'; return;
+    }
+    if (pass.length < 6) {
+      errEl.textContent = 'Parola trebuie să aibă minim 6 caractere!';
+      errEl.style.display = 'block'; return;
+    }
+
+    const users = getUsers();
+    if (users.find(u => u.email === email)) {
+      errEl.textContent = 'Emailul este deja înregistrat!';
+      errEl.style.display = 'block'; return;
+    }
+
+    const newUser = {
+      id: Date.now(),
+      name, email, password: pass, course, role,
+      status: role === 'teacher' ? 'active' : 'pending',
+      createdAt: new Date().toLocaleDateString('ro-RO')
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+
+    if (role === 'teacher') {
+      showToast('Cont de profesor creat! Vă puteți conecta.', 'success');
+      toggleForm(true);
+    } else {
+      showToast('Cont creat! Așteptați confirmarea profesorului. 📬', 'success');
+      setCurrentUser(newUser);
+      setTimeout(() => window.location.href = 'student.html', 1500);
+    }
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>

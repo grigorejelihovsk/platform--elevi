@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduBac — Tabloul meu de bord</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d0d0d;
+    --cream: #f5f0e8;
+    --gold: #c8a84b;
+    --gold-light: #e8d49a;
+    --burgundy: #7a1f2e;
+    --slate: #2c3e50;
+    --muted: #6b6b6b;
+    --border: #d8d0c0;
+    --white: #ffffff;
+    --error: #c0392b;
+    --success: #27ae60;
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); display: flex; min-height: 100vh; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--ink); color: var(--white); padding: 30px 20px; display: flex; flex-direction: column; position: fixed; height: 100vh; }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: var(--gold); text-align: center; margin-bottom: 40px; }
+  .nav-menu { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+  .nav-item { padding: 12px 15px; color: var(--border); text-decoration: none; font-size: 0.95rem; font-weight: 500; letter-spacing: 0.5px; cursor: pointer; transition: all 0.3s; }
+  .nav-item:hover, .nav-item.active { background: var(--burgundy); color: var(--white); }
+  .btn-logout { margin-top: auto; background: none; border: 1px solid var(--border); color: var(--white); padding: 10px; cursor: pointer; font-family: inherit; font-size: 0.9rem; transition: 0.3s; }
+  .btn-logout:hover { background: var(--error); border-color: var(--error); }
+
+  .main-content { margin-left: var(--sidebar-w); width: calc(100% - var(--sidebar-w)); padding: 40px; }
+  .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 30px; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+  .user-badge { font-weight: 600; font-size: 0.9rem; border: 1px solid var(--ink); padding: 6px 14px; text-transform: uppercase; }
+
+  .pending-banner { background: #fff9e6; border: 1px solid var(--gold); padding: 25px; margin-bottom: 30px; text-align: center; }
+  .pending-banner h3 { color: var(--burgundy); margin-bottom: 8px; font-family: 'Playfair Display', serif; font-size: 1.4rem; }
+
+  .course-grid { display: flex; flex-direction: column; gap: 20px; }
+  .lesson-card { background: var(--white); border: 1px solid var(--border); padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+  .lesson-info h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 5px; }
+  .lesson-actions { display: flex; gap: 10px; }
+
+  .btn { padding: 10px 18px; border: none; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.3s; }
+  .btn-primary { background: var(--ink); color: var(--white); }
+  .btn-primary:hover { background: var(--burgundy); }
+  .btn-secondary { background: transparent; border: 1px solid var(--ink); color: var(--ink); }
+  .btn-secondary:hover { background: var(--cream); }
+
+  .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-content { background: var(--white); width: 90%; max-width: 700px; padding: 30px; position: relative; border: 1px solid var(--border); }
+  .close-modal { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; cursor: pointer; }
+
+  .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; }
+  .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: var(--white); padding: 15px 25px; font-size: 0.9rem; display: none; z-index: 200; border-left: 4px solid var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">EduBac</div>
+  <div class="nav-menu">
+    <div class="nav-item active" onclick="showSection('course')">Cursul meu</div>
+  </div>
+  <button class="btn-logout" onclick="logout()">Deconectare</button>
+</div>
+
+<div class="main-content">
+  <div class="header">
+    <div id="pageTitle" class="page-title">Cursul meu</div>
+    <div id="userBadge" class="user-badge">Incarcare...</div>
+  </div>
+
+  <div id="pendingBanner" class="pending-banner" style="display: none;">
+    <h3>Accesul tău este în curs de verificare</h3>
+    <p>Contul a fost creat cu succes. Vei avea acces complet imediat ce profesorul îți va aproba înscrierea.</p>
+  </div>
+
+  <div id="courseContent" class="course-grid">
+    </div>
+</div>
+
+<div id="videoModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal('videoModal')">&times;</span>
+    <h2 id="videoModalTitle" style="font-family:'Playfair Display'; margin-bottom:15px;">Vizualizare Lecție</h2>
+    <div class="video-container">
+      <iframe id="videoIframe" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+<div id="quizModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeModal('quizModal')">&times;</span>
+    <h2 id="quizModalTitle" style="font-family:'Playfair Display'; margin-bottom:15px;">Evaluare Cunoștințe</h2>
+    <div id="quizContainer">
+      </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  let currentUser = JSON.parse(localStorage.getItem('edubac_current_user'));
+
+  if (!currentUser) {
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('userBadge').textContent = `${currentUser.name} (${currentUser.course})`;
+
+  function checkAccess() {
+    // Luăm varianta proaspătă din baza de date
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const freshUser = users.find(u => u.id === currentUser.id);
+    
+    if (freshUser && freshUser.status === 'pending') {
+      document.getElementById('pendingBanner').style.display = 'block';
+      document.getElementById('courseContent').style.display = 'none';
+      return false;
+    } else {
+      document.getElementById('pendingBanner').style.display = 'none';
+      document.getElementById('courseContent').style.display = 'flex';
+      return true;
+    }
+  }
+
+  function renderCourse() {
+    if (!checkAccess()) return;
+
+    const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    let html = '';
+
+    if (lessons.length === 0) {
+      html = '<p>Nu există lecții disponibile în acest moment.</p>';
+    } else {
+      lessons.forEach(lesson => {
+        html += `
+          <div class="lesson-card">
+            <div class="lesson-info">
+              <h3>${lesson.title}</h3>
+              <p style="color:var(--muted); font-size:0.9rem;">Curs de pregătire standard</p>
+            </div>
+            <div class="lesson-actions">
+              <button class="btn btn-secondary" onclick="openVideo(${lesson.id})">Material Video</button>
+              <button class="btn btn-primary" onclick="openQuiz(${lesson.id})">Rezolvă Testul</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+    document.getElementById('courseContent').innerHTML = html;
+  }
+
+  function openVideo(lessonId) {
+    const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    const lesson = lessons.find(l => l.id === lessonId);
+
+    if (lesson && lesson.videoUrl) {
+      document.getElementById('videoModalTitle').textContent = lesson.title;
+      // Convertim linkul standard de YouTube în format embed dacă este cazul
+      let embedUrl = lesson.videoUrl;
+      if (embedUrl.includes('watch?v=')) {
+        embedUrl = embedUrl.replace('watch?v=', 'embed/');
+      }
+      document.getElementById('videoIframe').src = embedUrl;
+      document.getElementById('videoModal').style.display = 'flex';
+    } else {
+      showToast('Profesorul nu a atașat încă un videoclip pentru această lecție.');
+    }
+  }
+
+  function openQuiz(lessonId) {
+    const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    const lesson = lessons.find(l => l.id === lessonId);
+
+    if (!lesson || !lesson.quiz || lesson.quiz.length === 0) {
+      showToast('Nu există întrebări setate pentru această lecție.');
+      return;
+    }
+
+    document.getElementById('quizModalTitle').textContent = `Test: ${lesson.title}`;
+    let html = '';
+    
+    lesson.quiz.forEach((q, qIndex) => {
+      html += `
+        <div style="margin-bottom: 20px; border-bottom: 1px solid var(--cream); padding-bottom:15px;">
+          <p style="font-weight:600; margin-bottom:10px;">${qIndex + 1}. ${q.question}</p>
+          ${q.options.map((opt, oIndex) => `
+            <label style="display:block; margin-bottom:5px; cursor:pointer;">
+              <input type="radio" name="q_${qIndex}" value="${oIndex}"> ${opt}
+            </label>
+          `).join('')}
+        </div>
+      `;
+    });
+
+    html += `<button class="btn btn-primary" onclick="verifyQuiz(${lessonId})">Trimite Răspunsurile</button>`;
+    document.getElementById('quizContainer').innerHTML = html;
+    document.getElementById('quizModal').style.display = 'flex';
+  }
+
+  function verifyQuiz(lessonId) {
+    const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+    const lesson = lessons.find(l => l.id === lessonId);
+    let score = 0;
+
+    lesson.quiz.forEach((q, qIndex) => {
+      const selected = document.querySelector(`input[name="q_${qIndex}"]:checked`);
+      if (selected && parseInt(selected.value) === parseInt(q.correct)) {
+        score++;
+      }
+    });
+
+    alert(`Test finalizat! Ai răspuns corect la ${score} din ${lesson.quiz.length} întrebări.`);
+    closeModal('quizModal');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+    if(id === 'videoModal') document.getElementById('videoIframe').src = '';
+  }
+
+  function logout() {
+    localStorage.removeItem('edubac_current_user');
+    window.location.href = 'index.html';
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  // Executare inițială
+  renderCourse();
+</script>
+</body>
+</html>
